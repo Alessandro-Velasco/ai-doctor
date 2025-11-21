@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Doctor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2196F3; }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            padding: 12px 24px;
+            margin: 5px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover { background: #1976D2; }
+        .register-btn { background: #4CAF50; }
+        .register-btn:hover { background: #45a049; }
+        .response {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f8ff;
+            border: 1px solid #2196F3;
+            border-radius: 8px;
+        }
+        .disclaimer {
+            margin-top: 15px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .hidden { display: none; }
+        .success { color: green; margin: 10px 0; }
+        .error { color: red; margin: 10px 0; }
+        .debug { 
+            background: #f0f0f0; 
+            padding: 10px; 
+            margin: 10px 0; 
+            font-size: 11px; 
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 AI Doctor</h1>
+        
+        <div id="auth-section">
+            <h2>Login / Register</h2>
+            <input type="text" id="username" placeholder="Username" value="ale">
+            <input type="password" id="password" placeholder="Password (min 8 chars)" value="password123">
+            <div>
+                <button class="register-btn" onclick="register()">Register</button>
+                <button onclick="login()">Login</button>
+            </div>
+            <div id="auth-message"></div>
+            <div id="debug-info" class="debug"></div>
+        </div>
+
+        <div id="chat-section" class="hidden">
+            <div class="success">✅ Logged in as: <strong><span id="logged-user"></span></strong></div>
+            <div class="debug">Token: <span id="token-display"></span></div>
+            <h2>Chat with AI Doctor</h2>
+            <textarea id="message" rows="4" placeholder="What are the symptoms of the flu?">What are the symptoms of the flu?</textarea>
+            <button onclick="sendMessage()">Send Message</button>
+            
+            <div id="response-area" class="hidden">
+                <div class="response">
+                    <h3>AI Response:</h3>
+                    <div id="ai-response" style="white-space: pre-wrap; line-height: 1.6;"></div>
+                    <div class="disclaimer">
+                        ⚠️ <strong>MEDICAL DISCLAIMER:</strong> Educational purposes only. Consult healthcare professionals.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let token = '';
+        let username = '';
+
+        function log(msg) {
+            console.log(msg);
+            document.getElementById('debug-info').textContent = msg;
+        }
+
+        async function register() {
+            username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            log('Registering...');
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: username,
+                        email: username + '@test.com',
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('auth-message').innerHTML = '<div class="success">✅ Registered! Now click Login.</div>';
+                    log('Registration successful');
+                } else {
+                    document.getElementById('auth-message').innerHTML = '<div class="error">❌ ' + (data.detail || 'Registration failed') + '</div>';
+                    log('Registration failed: ' + JSON.stringify(data));
+                }
+            } catch (error) {
+                document.getElementById('auth-message').innerHTML = '<div class="error">❌ Error: ' + error.message + '</div>';
+                log('Error: ' + error.message);
+            }
+        }
+
+        async function login() {
+            username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            log('Logging in...');
+
+            try {
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('password', password);
+
+                const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    token = data.access_token;
+                    
+                    log('Login successful! Token: ' + token.substring(0, 20) + '...');
+                    
+                    document.getElementById('auth-section').classList.add('hidden');
+                    document.getElementById('chat-section').classList.remove('hidden');
+                    document.getElementById('logged-user').textContent = username;
+                    document.getElementById('token-display').textContent = token.substring(0, 50) + '...';
+                } else {
+                    document.getElementById('auth-message').innerHTML = '<div class="error">❌ Login failed: ' + (data.detail || 'Check credentials') + '</div>';
+                    log('Login failed: ' + JSON.stringify(data));
+                }
+            } catch (error) {
+                document.getElementById('auth-message').innerHTML = '<div class="error">❌ Error: ' + error.message + '</div>';
+                log('Error: ' + error.message);
+            }
+        }
+
+        async function sendMessage() {
+            const message = document.getElementById('message').value;
+
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            if (!token) {
+                alert('Not logged in! Token is empty.');
+                return;
+            }
+
+            console.log('Sending message with token:', token.substring(0, 20) + '...');
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('ai-response').textContent = data.response;
+                    document.getElementById('response-area').classList.remove('hidden');
+                } else {
+                    alert('Error: ' + (data.detail || 'Failed to send message'));
+                    console.error('Chat error:', data);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
