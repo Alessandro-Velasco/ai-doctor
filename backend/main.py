@@ -7,7 +7,6 @@ import os
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 import bcrypt
-from groq import Groq
 
 app = FastAPI(title="AI Doctor API")
 
@@ -23,7 +22,19 @@ app.add_middleware(
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
-groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
+# Initialize groq_client with error handling
+groq_client = None
+if GROQ_API_KEY and GROQ_API_KEY.strip():
+    try:
+        from groq import Groq
+        groq_client = Groq(api_key=GROQ_API_KEY)
+        print("Groq client initialized successfully")
+    except ImportError:
+        print("Groq library not available")
+    except Exception as e:
+        print(f"Failed to initialize Groq client: {e}")
+else:
+    print("No GROQ_API_KEY provided, AI functionality will be disabled")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 users_db = {}
@@ -62,8 +73,9 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=30)
-    to_encode.update({"exp": expire})
+    # Use timezone-aware datetime to avoid deprecation warning
+    expire = datetime.now() + timedelta(minutes=30)
+    to_encode.update({"exp": expire.timestamp()})
     return jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -89,7 +101,7 @@ def health():
 def register(user: UserCreate):
     if user.username in users_db:
         raise HTTPException(status_code=400, detail="Username already exists")
-    
+
     hashed = get_password_hash(user.password)
     user_in_db = UserInDB(
         username=user.username,
@@ -105,7 +117,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = users_db.get(form_data.username)
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect credentials")
-    
+
     token = create_access_token(data={"sub": user.username})
     return {"access_token": token, "token_type": "bearer"}
 
@@ -117,7 +129,7 @@ def get_me(current_user: UserInDB = Depends(get_current_user)):
 async def chat(request: ChatRequest, current_user: UserInDB = Depends(get_current_user)):
     if not groq_client:
         raise HTTPException(status_code=500, detail="AI service not configured")
-    
+
     try:
         completion = groq_client.chat.completions.create(
             model="llama-3.1-70b-versatile",
@@ -134,24 +146,17 @@ async def chat(request: ChatRequest, current_user: UserInDB = Depends(get_curren
             temperature=0.7,
             max_tokens=1024,
         )
-        
+
         response_text = completion.choices[0].message.content
-        
+
         disclaimer = "\n\n⚠️ **MEDICAL DISCLAIMER**: This information is for educational purposes only. Always consult healthcare professionals for medical advice."
-        
+
         return ChatResponse(response=response_text + disclaimer)
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
-
-# Agregar al final si no existe
-if __name__ == "__main__":
-    import uvicorn
-    import os
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
