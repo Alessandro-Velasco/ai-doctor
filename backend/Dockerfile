@@ -20,5 +20,5 @@ COPY . .
 # Exponer puerto
 EXPOSE 8000
 
-# Comando de inicio (shell form para variables de entorno)
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Usar python para iniciar (lee PORT del environment)
+CMD ["python", "main.py"]
