@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuthStore } from '../store/authStore'
 import { chatApi } from '../lib/api'
 import { Button } from '../components/Button'
 import { 
-  Activity, Send, LogOut, MessageSquare, 
-  User, Settings, History, Sparkles, Plus, Trash2
+  Activity, Send, LogOut, Sparkles, Trash2
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
