@@ -35,55 +35,60 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.prose {
-  color: #374151;
-  line-height: 1.75;
+/* Prose styles for dark backgrounds */
+.prose-invert {
+  color: #f3f4f6;
 }
 
-.prose p {
+.prose-invert p {
+  color: #f3f4f6;
   margin-top: 0.75em;
   margin-bottom: 0.75em;
 }
 
-.prose strong {
-  color: #111827;
+.prose-invert strong {
+  color: #ffffff;
   font-weight: 600;
 }
 
-.prose ul {
+.prose-invert ul {
   list-style-type: disc;
   margin-top: 0.75em;
   margin-bottom: 0.75em;
   padding-left: 1.5em;
+  color: #f3f4f6;
 }
 
-.prose ol {
+.prose-invert ol {
   list-style-type: decimal;
   margin-top: 0.75em;
   margin-bottom: 0.75em;
   padding-left: 1.5em;
+  color: #f3f4f6;
 }
 
-.prose li {
+.prose-invert li {
   margin-top: 0.25em;
   margin-bottom: 0.25em;
+  color: #f3f4f6;
 }
 
-.prose a {
-  color: #2563eb;
+.prose-invert a {
+  color: #93c5fd;
   text-decoration: underline;
 }
 
-.prose code {
-  background-color: #f3f4f6;
+.prose-invert code {
+  background-color: rgba(255, 255, 255, 0.1);
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.875em;
   font-family: monospace;
+  color: #e5e7eb;
 }
 
-.prose h1, .prose h2, .prose h3, .prose h4 {
-  color: #111827;
+.prose-invert h1, .prose-invert h2, .prose-invert h3, .prose-invert h4 {
+  color: #ffffff;
   font-weight: 700;
   margin-top: 1.5em;
   margin-bottom: 0.5em;

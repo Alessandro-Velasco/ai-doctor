@@ -18,18 +18,15 @@ export function Login() {
     setIsLoading(true)
 
     try {
-      // 1. Login
       const loginRes = await authApi.login(username, password)
       const token = loginRes.data.access_token
 
-      // 2. Obtener datos del usuario CON el token
       const userRes = await api.get('/api/v1/auth/me', {
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
 
-      // 3. AHORA SÍ guardar todo
       setAuth(token, userRes.data)
 
       toast.success('Welcome back!')
@@ -42,33 +39,33 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <Activity className="h-10 w-10 text-primary-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold">Welcome back</h2>
+          <Activity className="h-10 w-10 text-blue-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Username</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
             </div>
@@ -79,7 +76,7 @@ export function Login() {
           </form>
 
           <div className="mt-6 text-center">
-            <Link to="/register" className="text-primary-600 hover:text-primary-700">
+            <Link to="/register" className="text-blue-600 hover:text-blue-700">
               Create account
             </Link>
           </div>
