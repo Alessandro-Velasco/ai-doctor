@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '../store/authStore'
 import { chatApi } from '../lib/api'
 import { Button } from '../components/Button'
 import { 
-  Activity, Send, LogOut, Menu, MessageSquare, 
-  User, Settings, History, Sparkles 
+  Activity, Send, LogOut, MessageSquare, 
+  User, Settings, History, Sparkles, Plus, Trash2
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -17,7 +17,6 @@ export function Dashboard() {
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
 
   const handleSend = async () => {
@@ -25,11 +24,12 @@ export function Dashboard() {
 
     const userMsg = { role: 'user', content: message }
     setMessages((prev) => [...prev, userMsg])
+    const currentMessage = message
     setMessage('')
     setIsLoading(true)
 
     try {
-      const res = await chatApi.sendMessage(message)
+      const res = await chatApi.sendMessage(currentMessage)
       const aiMsg = { role: 'assistant', content: res.data.response }
       setMessages((prev) => [...prev, aiMsg])
     } catch (error: any) {
@@ -45,239 +45,257 @@ export function Dashboard() {
     toast.success('Logged out successfully')
   }
 
+  const clearChat = () => {
+    setMessages([])
+    toast.success('Chat cleared')
+  }
+
   const suggestedQuestions = [
-    { icon: '💊', text: 'What are the symptoms of the flu?' },
-    { icon: '😴', text: 'How can I improve my sleep quality?' },
-    { icon: '❤️', text: 'What foods are good for heart health?' },
-    { icon: '🧘', text: 'Tips for reducing stress and anxiety?' }
+    { icon: '💊', text: 'What are the symptoms of the flu?', gradient: 'from-blue-500 to-cyan-500' },
+    { icon: '😴', text: 'How can I improve my sleep quality?', gradient: 'from-purple-500 to-pink-500' },
+    { icon: '❤️', text: 'What foods are good for heart health?', gradient: 'from-red-500 to-orange-500' },
+    { icon: '🧘', text: 'Tips for reducing stress and anxiety?', gradient: 'from-green-500 to-emerald-500' }
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Menu className="h-6 w-6 text-gray-600" />
-              </button>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Activity className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  AI Doctor
-                </span>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
+      </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="hidden sm:flex items-center space-x-3 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full border border-blue-200">
+      {/* Header */}
+      <header className="sticky top-0 z-40 glass border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <motion.div 
+              className="flex items-center space-x-3"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Activity className="h-6 w-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold text-white">AI Doctor</span>
+            </motion.div>
+
+            <motion.div 
+              className="flex items-center space-x-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              {messages.length > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearChat}
+                  className="text-white hover:bg-white/10"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear
+                </Button>
+              )}
+              <div className="hidden sm:flex items-center space-x-3 px-4 py-2 glass rounded-full">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">
                     {user?.username[0].toUpperCase()}
                   </span>
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-medium text-gray-900">{user?.username}</p>
-                  <p className="text-xs text-gray-500">Free Plan</p>
+                  <p className="text-sm font-medium text-white">{user?.username}</p>
+                  <p className="text-xs text-gray-300">Free Plan</p>
                 </div>
               </div>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleLogout}
-                className="hover:bg-red-50 hover:text-red-600"
+                className="text-white hover:bg-red-500/20"
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Logout</span>
+                <LogOut className="h-4 w-4" />
               </Button>
-            </div>
+            </motion.div>
           </div>
         </div>
       </header>
 
-      <div className="flex max-w-7xl mx-auto">
-        {/* Sidebar */}
-        <AnimatePresence>
-          {(sidebarOpen || window.innerWidth >= 1024) && (
-            <motion.aside
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              className="fixed lg:relative inset-y-0 left-0 z-20 w-64 bg-white border-r border-gray-200 lg:translate-x-0 pt-20 lg:pt-0"
-            >
-              <div className="p-4 space-y-2">
-                <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                  <MessageSquare className="h-5 w-5" />
-                  <span className="font-medium">New Chat</span>
-                </button>
-                
-                <div className="pt-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2">
-                    Menu
-                  </p>
-                  <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
-                    <History className="h-5 w-5" />
-                    <span>History</span>
-                  </button>
-                  <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
-                    <User className="h-5 w-5" />
-                    <span>Profile</span>
-                  </button>
-                  <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
-                    <Settings className="h-5 w-5" />
-                    <span>Settings</span>
-                  </button>
-                </div>
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
-
-        {/* Main Chat */}
-        <main className="flex-1 flex flex-col h-[calc(100vh-73px)]">
-          <div className="flex-1 overflow-y-auto px-4 py-6">
-            <div className="max-w-4xl mx-auto">
-              {messages.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-12"
+      {/* Main Content - Centrado */}
+      <main className="relative z-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Messages Area */}
+          <div className="min-h-[calc(100vh-280px)] mb-6">
+            {messages.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-16"
+              >
+                <motion.div 
+                  className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-purple-500/50"
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
                 >
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <Sparkles className="h-10 w-10 text-white" />
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                    Welcome to AI Doctor
-                  </h2>
-                  <p className="text-gray-600 mb-8 text-lg">
-                    Ask me any health-related question to get started
-                  </p>
-
-                  <div className="grid sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
-                    {suggestedQuestions.map((q, i) => (
-                      <motion.button
-                        key={i}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setMessage(q.text)}
-                        className="flex items-start space-x-3 p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-blue-400 hover:shadow-md transition-all text-left group"
-                      >
-                        <span className="text-2xl">{q.icon}</span>
-                        <span className="text-sm text-gray-700 group-hover:text-gray-900">
-                          {q.text}
-                        </span>
-                      </motion.button>
-                    ))}
-                  </div>
+                  <Sparkles className="h-12 w-12 text-white" />
                 </motion.div>
-              ) : (
-                <div className="space-y-6">
+                <h2 className="text-4xl font-bold text-white mb-4">
+                  Welcome to AI Doctor
+                </h2>
+                <p className="text-gray-300 mb-12 text-lg max-w-2xl mx-auto">
+                  Your personal AI health assistant is ready to help. Ask any health-related question to get started.
+                </p>
+
+                <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                  {suggestedQuestions.map((q, i) => (
+                    <motion.button
+                      key={i}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setMessage(q.text)}
+                      className="group relative overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" 
+                           style={{ background: `linear-gradient(to right, var(--tw-gradient-stops))` }} />
+                      <div className="relative flex items-start space-x-4 p-6 glass rounded-2xl hover:shadow-2xl transition-all text-left">
+                        <div className={`w-12 h-12 bg-gradient-to-br ${q.gradient} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                          <span className="text-2xl">{q.icon}</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-white font-medium group-hover:text-blue-200 transition-colors">
+                            {q.text}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              <div className="space-y-8">
+                <AnimatePresence>
                   {messages.map((msg, idx) => (
                     <motion.div
                       key={idx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
                       className="flex gap-4"
                     >
-                      <div className="flex-shrink-0">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      {/* Avatar */}
+                      <motion.div 
+                        className="flex-shrink-0"
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
                           msg.role === 'user' 
-                            ? 'bg-gradient-to-br from-blue-500 to-purple-600' 
-                            : 'bg-gradient-to-br from-gray-700 to-gray-900'
+                            ? 'bg-gradient-to-br from-blue-500 to-purple-600 shadow-blue-500/50' 
+                            : 'bg-gradient-to-br from-gray-700 to-gray-900 shadow-gray-900/50'
                         }`}>
-                          <span className="text-white text-sm font-semibold">
+                          <span className="text-white text-sm font-bold">
                             {msg.role === 'user' ? user?.username[0].toUpperCase() : 'AI'}
                           </span>
                         </div>
-                      </div>
+                      </motion.div>
 
+                      {/* Message Content */}
                       <div className="flex-1 space-y-2">
-                        <div className="font-semibold text-sm text-gray-700">
+                        <div className="font-semibold text-sm text-white">
                           {msg.role === 'user' ? user?.username : 'AI Doctor'}
                         </div>
-                        <div className={`rounded-2xl px-6 py-4 ${
-                          msg.role === 'user'
-                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                            : 'bg-white border-2 border-gray-200 shadow-sm'
-                        }`}>
+                        <motion.div 
+                          className={`rounded-2xl px-6 py-4 shadow-xl ${
+                            msg.role === 'user'
+                              ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-purple-500/30'
+                              : 'glass text-gray-100 shadow-black/20'
+                          }`}
+                          whileHover={{ scale: 1.01 }}
+                        >
                           {msg.role === 'assistant' ? (
-                            <div className="prose prose-sm max-w-none">
+                            <div className="prose prose-sm prose-invert max-w-none">
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                 {msg.content}
                               </ReactMarkdown>
                             </div>
                           ) : (
-                            <p className="text-white">{msg.content}</p>
+                            <p className="text-white leading-relaxed">{msg.content}</p>
                           )}
-                        </div>
+                        </motion.div>
                       </div>
                     </motion.div>
                   ))}
+                </AnimatePresence>
 
-                  {isLoading && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="flex gap-4"
-                    >
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                          <span className="text-white text-sm font-semibold">AI</span>
+                {/* Loading Indicator */}
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex gap-4"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-lg">
+                      <span className="text-white text-sm font-bold">AI</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-sm text-white mb-2">AI Doctor</div>
+                      <div className="glass rounded-2xl px-6 py-4 shadow-xl">
+                        <div className="flex space-x-2">
+                          <motion.div 
+                            className="w-3 h-3 bg-blue-500 rounded-full"
+                            animate={{ y: [0, -10, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity }}
+                          />
+                          <motion.div 
+                            className="w-3 h-3 bg-purple-500 rounded-full"
+                            animate={{ y: [0, -10, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.1 }}
+                          />
+                          <motion.div 
+                            className="w-3 h-3 bg-pink-500 rounded-full"
+                            animate={{ y: [0, -10, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                          />
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-sm text-gray-700 mb-2">AI Doctor</div>
-                        <div className="bg-white border-2 border-gray-200 rounded-2xl px-6 py-4">
-                          <div className="flex space-x-2">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
-                            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Input Area */}
-          <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm px-4 py-4">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex gap-3">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                    placeholder="Ask me anything about health..."
-                    className="w-full px-6 py-4 pr-12 border-2 border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm text-gray-900 placeholder-gray-500"
-                    disabled={isLoading}
-                  />
-                </div>
-                <Button 
-                  onClick={handleSend} 
-                  disabled={isLoading || !message.trim()}
-                  className="px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50"
-                >
-                  <Send className="h-5 w-5" />
-                </Button>
+                    </div>
+                  </motion.div>
+                )}
               </div>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                ⚠️ Educational purposes only. Always consult healthcare professionals.
-              </p>
-            </div>
+            )}
           </div>
-        </main>
-      </div>
+
+          {/* Input Area - Fixed at Bottom */}
+          <div className="glass rounded-2xl p-4 shadow-2xl shadow-black/20">
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                  placeholder="Ask me anything about health..."
+                  className="w-full px-6 py-4 bg-white/10 border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 backdrop-blur-sm"
+                  disabled={isLoading}
+                />
+              </div>
+              <Button 
+                onClick={handleSend} 
+                disabled={isLoading || !message.trim()}
+                className="px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
+              >
+                <Send className="h-5 w-5" />
+              </Button>
+            </div>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              ⚠️ Educational purposes only. Always consult healthcare professionals.
+            </p>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }
