@@ -8,7 +8,6 @@
   }
 }
 
-/* Animaciones personalizadas */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-20px); }
@@ -29,7 +28,6 @@
   animation: gradient 15s ease infinite;
 }
 
-/* Glassmorphism */
 .glass {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -37,7 +35,6 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Prose Styles for Markdown */
 .prose {
   color: #374151;
   line-height: 1.75;
@@ -92,7 +89,6 @@
   margin-bottom: 0.5em;
 }
 
-/* Sombras mejoradas */
 .shadow-glow {
   box-shadow: 0 0 40px rgba(59, 130, 246, 0.3);
 }

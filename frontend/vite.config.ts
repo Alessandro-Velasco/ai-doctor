@@ -1,10 +1,10 @@
-// vite.config.ts
+// ~/ai-doctor/frontend/vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
   css: {
-    lightningcss: false, // ← ADD THIS LINE
+    transformer: 'postcss', // ← This is critical for Tailwind
   },
 })
