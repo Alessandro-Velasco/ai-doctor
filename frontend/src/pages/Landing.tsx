@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Button } from '../components/Button'
-import { Activity, Shield, Zap, Users, ChevronRight, Sparkles, Clock, Lock, CheckCircle2 } from 'lucide-react'
+import { Activity, Shield, Zap, ChevronRight, Sparkles, Clock, Lock, CheckCircle2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export function Landing() {

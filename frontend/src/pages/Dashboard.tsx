@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/authStore'
 import { chatApi } from '../lib/api'
 import { Button } from '../components/Button'
 import { 
-  Activity, Send, LogOut, Menu, X, MessageSquare, 
+  Activity, Send, LogOut, Menu, MessageSquare, 
   User, Settings, History, Sparkles 
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
