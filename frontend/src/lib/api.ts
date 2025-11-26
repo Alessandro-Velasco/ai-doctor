@@ -1,19 +1,20 @@
 import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
 
+// Leer la variable de entorno correctamente para Vite
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+console.log('🔵 API URL:', API_URL) // Debug: verifica qué URL está usando
+
 export const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: API_URL,
 })
 
-// Interceptor mejorado
 api.interceptors.request.use((config) => {
-  // Obtener token directamente del store
   const token = useAuthStore.getState().token
-  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
-  
   return config
 })
 
